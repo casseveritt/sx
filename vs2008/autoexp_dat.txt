@@ -1,0 +1,130 @@
+
+
+; sx types
+
+Atom{
+	preview ( #(
+		$e.a,
+		" ",
+		[$e.s,s]
+	) )
+}
+
+Expr{
+	preview (
+		#if ( $e.kind == UNARY_N ) ( #(
+			((Unary *)&$e)->op, "( ",
+			#if ( ((Unary *)&$e)->arg != 0 ) (
+				((Unary *)&$e)->arg
+			) #else (
+				"<NULL>"
+			),
+			" )"
+		)) #elif ( $e.kind == BINARY_N ) ( #(
+			((Binary *)&$e)->op, "( ",
+			#if ( ((Binary *)&$e)->left != 0 ) (
+				((Binary *)&$e)->left
+			) #else (
+				"<NULL>"
+			),
+			", ",
+			#if ( ((Binary *)&$e)->right != 0 ) (
+				((Binary *)&$e)->right
+			) #else (
+				"<NULL>"
+			),
+			" )"
+		)) #elif ( $e.kind == TRINARY_N ) ( #(
+			((Trinary *)&$e)->op, "( ",
+			#if ( ((Trinary *)&$e)->arg1 != 0 ) (
+				((Trinary *)&$e)->arg1
+			) #else (
+				"<NULL>"
+			),
+			", ",
+			#if ( ((Trinary *)&$e)->arg2 != 0 ) (
+				((Trinary *)&$e)->arg2
+			) #else (
+				"<NULL>"
+			),
+			", ",
+			#if ( ((Trinary *)&$e)->arg3 != 0 ) (
+				((Trinary *)&$e)->arg3
+			) #else (
+				"<NULL>"
+			),
+			" )"
+		) ) #elif( $e.kind == SYMB_N ) ( #(
+			[((Symb *)&$e)->symbol->name.s,s]
+		) ) #else (  
+			$e.kind
+		)
+	)
+	children ( 
+		#(
+			[all] : [$c,!],
+			kind : $c.kind,
+			#if( $c.kind == BINARY_N ) ( #( op : ((Binary *)&$c)->op, left : ((Binary *)&$c)->left, right : ((Binary *)&$c)->right ) )
+			#elif( $c.kind == SYMB_N  ) ( #( op : ((Symb *)&$c)->op, symbol : ((Symb *)&$c)->symbol ) )
+			
+		)
+	)
+}
+
+
+; 
+SourceLoc{
+	preview ( #(
+		[$e.file.s,s], "(", $e.line, ")"
+	) )
+}
+
+Symbol{
+	preview ( #(
+		[$e.name.s,s], " ", $e.kind
+	) )
+	children ( 
+		#(
+			[all] : [$c,!],
+			#if( $c.kind == FUNCTION_S ) ( #( fun : $c.details.fun ) )
+			#elif( $c.kind == VARIABLE_S ) ( #( var : $c.details.var ) )
+			#elif( $c.kind == CONSTANT_S ) ( #( con : $c.details.con ) )
+			#elif( $c.kind == MACRO_S ) ( #( con : $c.details.mac ) )
+			
+		)
+	)
+}
+
+Type{
+	preview ( #(
+		#if( $e.domain == TD_UNIFORM ) ( "uniform " )
+		#elif( $e.domain == TD_VARYING ) ( "varying " ),
+
+		#if( $e.base == TB_NO_TYPE ) ( "-" )
+		#elif( $e.base == TB_UNDEFINED_TYPE ) ( "undef" )
+		#elif( $e.base == TB_NO_TYPE ) ( "-" )
+		#elif( $e.base == TB_CFLOAT ) ( "cfloat" )
+		#elif( $e.base == TB_CINT ) ( "cint" )
+		#elif( $e.base == TB_VOID ) ( "void" )
+		#elif( $e.base == TB_FLOAT ) ( "float" )
+		#elif( $e.base == TB_INT ) ( "int" )
+		#elif( $e.base == TB_BOOLEAN ) ( "boolean" )
+		#else ( "unknown" ), 
+
+		#if( $e.category == TC_ARRAY ) ( #(
+			"[", ((TypeArray *)&$e)->numels, "]",
+			#if( ((TypeArray *)&$e)->eltype->category == TC_ARRAY ) ( #(
+				"[", ((TypeArray *)((TypeArray *)&$e)->eltype)->numels, "]"
+			) )
+		) )
+	) )
+	children ( 
+		#(
+			[all] : [$c,!],
+			#if( $c.category == TC_ARRAY ) ( #( eltype : ((TypeArray *)&$c)->eltype, numels : ((TypeArray *)&$c)->numels ) )
+			#elif( $c.category == TC_FUNCTION ) ( #( rettype : ((TypeFunction *)&$c)->rettype, paramtypes: ((TypeFunction *)&$c)->paramtypes ) )
+			
+		)
+	)
+}
+

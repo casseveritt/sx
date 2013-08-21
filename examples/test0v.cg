@@ -1,0 +1,13 @@
+uniform float4x4 imvp;
+
+void main(
+    float2 position : ATTRIB0,
+    uniform float4x4 mvp,
+    out float4 color : COLOR,
+    out float4 hpos : POSITION
+)
+{
+  hpos = mul( mvp, float4( position.x, position.y, 0, 1 ) );
+  color = float4(0, 1, 0, 1);  // RGBA green
+}
+
